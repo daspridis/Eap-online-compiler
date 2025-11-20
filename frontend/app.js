@@ -752,8 +752,33 @@ class Interpreter {
 
 document.addEventListener('DOMContentLoaded', () => {
     const codeEditor = document.getElementById('code-editor');
+    const lineNumbers = document.getElementById('line-numbers');
     const runButton = document.getElementById('run-button');
     const outputDisplay = document.getElementById('output-display');
+
+    const updateLineNumbers = () => {
+        const lines = codeEditor.value.split('\n').length;
+        lineNumbers.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
+    };
+
+    codeEditor.addEventListener('input', updateLineNumbers);
+    codeEditor.addEventListener('scroll', () => {
+        lineNumbers.scrollTop = codeEditor.scrollTop;
+    });
+
+    // Initial update
+    updateLineNumbers();
+
+    // Enable Tab key support
+    codeEditor.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = codeEditor.selectionStart;
+            const end = codeEditor.selectionEnd;
+            codeEditor.value = codeEditor.value.substring(0, start) + "\t" + codeEditor.value.substring(end);
+            codeEditor.selectionStart = codeEditor.selectionEnd = start + 1;
+        }
+    });
 
     runButton.addEventListener('click', () => {
         const pseudocode = codeEditor.value;
