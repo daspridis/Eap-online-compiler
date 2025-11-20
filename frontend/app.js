@@ -263,13 +263,23 @@ class Environment {
     }
 
     define(name, value) {
-        this.values.set(name.toUpperCase(), value);
+        // We store "Boxes" ({ value: ... }) to allow pass-by-reference if needed.
+        // If the value passed is already a box (e.g. from pass-by-ref), use it.
+        if (value && typeof value === 'object' && 'value' in value && Object.keys(value).length === 1) {
+             this.values.set(name.toUpperCase(), value);
+        } else {
+             this.values.set(name.toUpperCase(), { value });
+        }
+    }
+
+    defineBox(name, box) {
+        this.values.set(name.toUpperCase(), box);
     }
 
     assign(name, value) {
         const key = name.toUpperCase();
         if (this.values.has(key)) {
-            this.values.set(key, value);
+            this.values.get(key).value = value;
             return;
         }
         if (this.parent) {
@@ -282,10 +292,21 @@ class Environment {
     get(name) {
         const key = name.toUpperCase();
         if (this.values.has(key)) {
-            return this.values.get(key);
+            return this.values.get(key).value;
         }
         if (this.parent) {
             return this.parent.get(name);
+        }
+        throw new Error(`Undefined variable '${name}'.`);
+    }
+
+    getBox(name) {
+        const key = name.toUpperCase();
+        if (this.values.has(key)) {
+            return this.values.get(key);
+        }
+        if (this.parent) {
+            return this.parent.getBox(name);
         }
         throw new Error(`Undefined variable '${name}'.`);
     }
@@ -311,6 +332,12 @@ class ArrayObject {
     set(indices, value) {
         this.data[this.getKey(indices)] = value;
     }
+
+    clone() {
+        const newArr = new ArrayObject();
+        newArr.data = { ...this.data };
+        return newArr;
+    }
 }
 
 class Interpreter {
@@ -322,6 +349,10 @@ class Interpreter {
     interpret(ast) {
         this.outputBuffer = [];
         this.globalEnv = new Environment(); // Reset env for each run
+
+        // Define standard constants
+        this.globalEnv.define('EOLN', '\n');
+
         try {
             if (ast.type !== 'Program') throw new Error("Expected Program node");
 
@@ -351,6 +382,8 @@ class Interpreter {
 
                      env.define(decl.name, defaultVal);
                 }
+            } else if (decl.type === 'ProcedureDeclaration' || decl.type === 'FunctionDeclaration') {
+                env.define(decl.name, { type: 'Subroutine', declaration: decl, closure: env });
             }
         }
     }
@@ -443,6 +476,12 @@ class Interpreter {
                 const step = this.evaluate(stmt.step, env);
                 const varName = stmt.variable;
 
+                // Loop variable implicitly declared if not exists?
+                try {
+                    env.get(varName);
+                } catch(e) {
+                     env.define(varName, start);
+                }
                 env.assign(varName, start);
 
                 let current = start;
@@ -462,8 +501,40 @@ class Interpreter {
                 break;
             }
             case 'ProcedureCall': {
-                // Placeholder for procedure calls
-                 throw new Error(`Procedure call '${stmt.name}' not implemented yet.`);
+                 const proc = env.get(stmt.name);
+                 if (!proc || proc.type !== 'Subroutine') throw new Error(`Unknown procedure '${stmt.name}'.`);
+                 const decl = proc.declaration;
+
+                 if (decl.params.length !== stmt.args.length) {
+                     throw new Error(`Procedure '${stmt.name}' expects ${decl.params.length} arguments but got ${stmt.args.length}.`);
+                 }
+
+                 const procEnv = new Environment(proc.closure);
+
+                 for(let i = 0; i < decl.params.length; i++) {
+                     const param = decl.params[i];
+                     const arg = stmt.args[i];
+
+                     if (param.passBy === 'reference') {
+                         if (arg.value.type !== 'Identifier') {
+                             throw new Error(`Argument for reference parameter '${param.name}' must be a variable.`);
+                         }
+                         // Pass the existing box
+                         const argBox = env.getBox(arg.value.name);
+                         procEnv.defineBox(param.name, argBox);
+                     } else {
+                         // Pass by value
+                         let val = this.evaluate(arg.value, env);
+                         if (val instanceof ArrayObject) {
+                             val = val.clone();
+                         }
+                         procEnv.define(param.name, val);
+                     }
+                 }
+
+                 this.processDeclarations(decl.declarations, procEnv);
+                 this.executeBlock(decl.body, procEnv);
+                 break;
             }
         }
     }
@@ -508,8 +579,57 @@ class Interpreter {
                 return arr.get(indices);
             }
             case 'FunctionCall': {
-                // Placeholder
-                throw new Error(`Function call '${expr.name}' not implemented yet.`);
+                 const func = env.get(expr.name);
+                 if (!func || func.type !== 'Subroutine') throw new Error(`Unknown function '${expr.name}'.`);
+                 const decl = func.declaration;
+
+                 if (decl.params.length !== expr.args.length) {
+                     throw new Error(`Function '${expr.name}' expects ${decl.params.length} arguments but got ${expr.args.length}.`);
+                 }
+
+                 const funcEnv = new Environment(func.closure);
+
+                 // Initialize return variable
+                 // In Pascal/EAP, function result is assigned to function name variable.
+                 let defaultVal = 0; // Default
+                 // Ideally check returnType
+                 funcEnv.define(expr.name, defaultVal);
+
+                 for(let i = 0; i < decl.params.length; i++) {
+                     const param = decl.params[i];
+                     const argExpr = expr.args[i];
+
+                     // Function arguments are expressions in parseFunctionCall
+                     // parseProcedureCall had {value, passBy} because of % check in CALL.
+                     // FunctionCall parser just pushes expression.
+                     // But what if function has reference param?
+                     // Parser: parseFunctionDeclaration supports % params.
+                     // Parser: parseFunctionCall does NOT check % in call args?
+                     // Let's check parseFunctionCall in previous file content.
+
+                     // In the patch, I am implementing evaluate.
+
+                     if (param.passBy === 'reference') {
+                         // This requires the argument expression to be an Identifier
+                         if (argExpr.type !== 'Identifier') {
+                              throw new Error(`Argument for reference parameter '${param.name}' must be a variable.`);
+                         }
+                         const argBox = env.getBox(argExpr.name);
+                         funcEnv.defineBox(param.name, argBox);
+                     } else {
+                         let val = this.evaluate(argExpr, env);
+                         if (val instanceof ArrayObject) {
+                             val = val.clone();
+                         }
+                         funcEnv.define(param.name, val);
+                     }
+                 }
+
+                 this.processDeclarations(decl.declarations, funcEnv);
+                 this.executeBlock(decl.body, funcEnv);
+
+                 // Return the value of the variable with function name
+                 return funcEnv.get(expr.name);
             }
         }
         throw new Error(`Unknown expression type: ${expr.type}`);
