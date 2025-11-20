@@ -8,8 +8,7 @@ const KEYWORDS = { ...GREEK_KEYWORDS, ...ENGLISH_KEYWORDS };
 const OPERATORS = {':=': TokenType.ASSIGN,'+': TokenType.PLUS,'-': TokenType.MINUS,'*': TokenType.MULTIPLY,'/': TokenType.DIVIDE,'=': TokenType.EQUALS,'<': TokenType.LESS_THAN,'>': TokenType.GREATER_THAN,'<=': TokenType.LESS_EQUALS,'>=': TokenType.GREATER_EQUALS,'<>': TokenType.NOT_EQUALS,'(': TokenType.LEFT_PAREN,')': TokenType.RIGHT_PAREN,'[': TokenType.LEFT_BRACKET,']': TokenType.RIGHT_BRACKET,',': TokenType.COMMA,':': TokenType.COLON,';': TokenType.SEMICOLON,'.': TokenType.DOT,'^': TokenType.CARET, '%': TokenType.PERCENT};
 function isLetter(char) { return (char >= '\u0386' && char <= '\u03ce') || (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z'); }
 function isDigit(char) { return char >= '0' && char <= '9'; }
-function tokenize(code) { let tokens = []; let current = 0; let line = 1; let column = 1; while (current < code.length) { let char = code[current]; if (/
-|	|||/.test(char)) { if (char === '\n') { line++; column = 1; } else { column++; } current++; continue; } if (char === '/' && code[current + 1] === '/') { while (current < code.length && code[current] !== '\n') current++; continue; } if (char === '/' && code[current + 1] === '*') { current += 2; while (current < code.length && (code[current] !== '*' || code[current + 1] !== '/')) { if (code[current] === '\n') { line++; column = 1; } else { column++; } current++; } if(current < code.length) {current += 2; column += 2;} continue; } if (char === '"') { let value = ''; current++; while (current < code.length && code[current] !== '"') { value += code[current++]; } current++; tokens.push({ type: TokenType.STRING, value, line, column }); column += value.length + 2; continue; } if (isDigit(char)) { let value = ''; while (current < code.length && isDigit(code[current])) { value += code[current++]; } if (code[current] === '.' && isDigit(code[current + 1])) { value += code[current++]; while (current < code.length && isDigit(code[current])) { value += code[current++]; } } tokens.push({ type: TokenType.NUMBER, value: parseFloat(value), line, column }); column += value.length; continue; } let twoCharOp = code.substring(current, current + 2); if (OPERATORS[twoCharOp]) { tokens.push({ type: OPERATORS[twoCharOp], value: twoCharOp, line, column }); current += 2; column += 2; continue; } if (OPERATORS[char]) { tokens.push({ type: OPERATORS[char], value: char, line, column }); current++; column++; continue; } if (isLetter(char) || char === '_' || char === '-') { let value = ''; while (current < code.length && (isLetter(code[current]) || isDigit(code[current]) || code[current] === '_' || code[current] === '-')) { value += code[current++]; } const upperValue = KEYWORDS[value.toUpperCase()]; if (upperValue) { tokens.push({ type: upperValue, value: value.toUpperCase(), line, column }); } else { tokens.push({ type: TokenType.IDENTIFIER, value, line, column }); } column += value.length; continue; } throw new Error(`Unexpected character '${char}' at line ${line}, column ${column}`); } tokens.push({ type: TokenType.EOF, value: 'EOF', line, column }); return tokens; }
+function tokenize(code) { let tokens = []; let current = 0; let line = 1; let column = 1; while (current < code.length) { let char = code[current]; if (/\s/.test(char)) { if (char === '\n') { line++; column = 1; } else { column++; } current++; continue; } if (char === '/' && code[current + 1] === '/') { while (current < code.length && code[current] !== '\n') current++; continue; } if (char === '/' && code[current + 1] === '*') { current += 2; while (current < code.length && (code[current] !== '*' || code[current + 1] !== '/')) { if (code[current] === '\n') { line++; column = 1; } else { column++; } current++; } if(current < code.length) {current += 2; column += 2;} continue; } if (char === '"') { let value = ''; current++; while (current < code.length && code[current] !== '"') { value += code[current++]; } current++; tokens.push({ type: TokenType.STRING, value, line, column }); column += value.length + 2; continue; } if (isDigit(char)) { let value = ''; while (current < code.length && isDigit(code[current])) { value += code[current++]; } if (code[current] === '.' && isDigit(code[current + 1])) { value += code[current++]; while (current < code.length && isDigit(code[current])) { value += code[current++]; } } tokens.push({ type: TokenType.NUMBER, value: parseFloat(value), line, column }); column += value.length; continue; } let twoCharOp = code.substring(current, current + 2); if (OPERATORS[twoCharOp]) { tokens.push({ type: OPERATORS[twoCharOp], value: twoCharOp, line, column }); current += 2; column += 2; continue; } if (OPERATORS[char]) { tokens.push({ type: OPERATORS[char], value: char, line, column }); current++; column++; continue; } if (isLetter(char) || char === '_' || char === '-') { let value = ''; while (current < code.length && (isLetter(code[current]) || isDigit(code[current]) || code[current] === '_' || code[current] === '-')) { value += code[current++]; } const upperValue = KEYWORDS[value.toUpperCase()]; if (upperValue) { tokens.push({ type: upperValue, value: value.toUpperCase(), line, column }); } else { tokens.push({ type: TokenType.IDENTIFIER, value, line, column }); } column += value.length; continue; } throw new Error(`Unexpected character '${char}' at line ${line}, column ${column}`); } tokens.push({ type: TokenType.EOF, value: 'EOF', line, column }); return tokens; }
 
 // -----------------------------------------------------------------------------
 // PARSER
@@ -254,12 +253,266 @@ class Parser {
 }
 
 // -----------------------------------------------------------------------------
-// INTERPRETER (Placeholder)
+// INTERPRETER
 // -----------------------------------------------------------------------------
 
+class Environment {
+    constructor(parent = null) {
+        this.values = new Map();
+        this.parent = parent;
+    }
+
+    define(name, value) {
+        this.values.set(name.toUpperCase(), value);
+    }
+
+    assign(name, value) {
+        const key = name.toUpperCase();
+        if (this.values.has(key)) {
+            this.values.set(key, value);
+            return;
+        }
+        if (this.parent) {
+            this.parent.assign(name, value);
+            return;
+        }
+        throw new Error(`Undefined variable '${name}'.`);
+    }
+
+    get(name) {
+        const key = name.toUpperCase();
+        if (this.values.has(key)) {
+            return this.values.get(key);
+        }
+        if (this.parent) {
+            return this.parent.get(name);
+        }
+        throw new Error(`Undefined variable '${name}'.`);
+    }
+}
+
+class ArrayObject {
+    constructor() {
+        this.data = {};
+    }
+
+    getKey(indices) {
+        return indices.join(',');
+    }
+
+    get(indices) {
+        const key = this.getKey(indices);
+        if (this.data.hasOwnProperty(key)) {
+            return this.data[key];
+        }
+        throw new Error(`Array index out of bounds or undefined value at indices [${indices.join(', ')}]`);
+    }
+
+    set(indices, value) {
+        this.data[this.getKey(indices)] = value;
+    }
+}
+
 class Interpreter {
+    constructor() {
+        this.globalEnv = new Environment();
+        this.outputBuffer = [];
+    }
+
     interpret(ast) {
-        return { output: "Parser successful! Interpreter not yet implemented.", error: null };
+        this.outputBuffer = [];
+        this.globalEnv = new Environment(); // Reset env for each run
+        try {
+            if (ast.type !== 'Program') throw new Error("Expected Program node");
+
+            this.processDeclarations(ast.declarations, this.globalEnv);
+            this.executeBlock(ast.body, this.globalEnv);
+
+            return { output: this.outputBuffer.join('\n'), error: null };
+        } catch (e) {
+            return { output: this.outputBuffer.join('\n'), error: e.message };
+        }
+    }
+
+    processDeclarations(declarations, env) {
+        for (const decl of declarations) {
+            if (decl.type === 'ConstantDeclaration') {
+                 const val = this.evaluate(decl.value, env);
+                 env.define(decl.name, val);
+            } else if (decl.type === 'VariableDeclaration') {
+                if (decl.varType.type === 'ArrayType') {
+                     env.define(decl.name, new ArrayObject());
+                } else {
+                     // Initialize with default values based on type
+                     let defaultVal = null;
+                     if (decl.varType.name === TokenType.INTEGER_TYPE || decl.varType.name === TokenType.REAL_TYPE) defaultVal = 0;
+                     else if (decl.varType.name === TokenType.BOOLEAN_TYPE) defaultVal = false;
+                     else if (decl.varType.name === TokenType.STRING_TYPE || decl.varType.name === TokenType.CHAR_TYPE) defaultVal = "";
+
+                     env.define(decl.name, defaultVal);
+                }
+            }
+        }
+    }
+
+    executeBlock(statements, env) {
+        for (const stmt of statements) {
+            this.execute(stmt, env);
+        }
+    }
+
+    execute(stmt, env) {
+        switch (stmt.type) {
+            case 'AssignmentStatement': {
+                const val = this.evaluate(stmt.value, env);
+                if (stmt.indices && stmt.indices.length > 0) {
+                    const arr = env.get(stmt.identifier);
+                    if (!(arr instanceof ArrayObject)) throw new Error(`'${stmt.identifier}' is not an array.`);
+                    const indices = stmt.indices.map(idx => this.evaluate(idx, env));
+                    arr.set(indices, val);
+                } else {
+                    env.assign(stmt.identifier, val);
+                }
+                break;
+            }
+            case 'PrintStatement': {
+                const output = stmt.expressions.map(expr => this.evaluate(expr, env)).join(' ');
+                this.outputBuffer.push(output);
+                break;
+            }
+            case 'ReadStatement': {
+                for(const arg of stmt.args) {
+                    let targetName;
+                    let targetIndices = [];
+
+                    if (arg.type === 'Identifier') {
+                        targetName = arg.name;
+                    } else if (arg.type === 'ArrayAccess') {
+                        targetName = arg.name;
+                        targetIndices = arg.indices.map(i => this.evaluate(i, env));
+                    } else {
+                        throw new Error("READ requires a variable.");
+                    }
+
+                    const promptMsg = targetIndices.length > 0
+                        ? `Enter value for ${targetName}[${targetIndices.join(',')}]`
+                        : `Enter value for ${targetName}`;
+
+                    const input = window.prompt(promptMsg);
+                    if (input === null) throw new Error("Input cancelled");
+
+                    let value = input;
+                    if (!isNaN(input) && input.trim() !== '') {
+                        value = Number(input);
+                    } else if (input.toLowerCase() === 'true') value = true;
+                    else if (input.toLowerCase() === 'false') value = false;
+
+                    if (targetIndices.length > 0) {
+                        const arr = env.get(targetName);
+                        if (!(arr instanceof ArrayObject)) throw new Error(`'${targetName}' is not an array.`);
+                        arr.set(targetIndices, value);
+                    } else {
+                        env.assign(targetName, value);
+                    }
+                }
+                break;
+            }
+            case 'IfStatement': {
+                if (this.evaluate(stmt.condition, env)) {
+                    this.executeBlock(stmt.thenBranch, env);
+                } else if (stmt.elseBranch) {
+                    this.executeBlock(stmt.elseBranch, env);
+                }
+                break;
+            }
+            case 'WhileStatement': {
+                while(this.evaluate(stmt.condition, env)) {
+                    this.executeBlock(stmt.body, env);
+                }
+                break;
+            }
+             case 'RepeatUntilStatement': {
+                do {
+                    this.executeBlock(stmt.body, env);
+                } while (!this.evaluate(stmt.condition, env));
+                break;
+            }
+             case 'ForStatement': {
+                const start = this.evaluate(stmt.start, env);
+                const end = this.evaluate(stmt.end, env);
+                const step = this.evaluate(stmt.step, env);
+                const varName = stmt.variable;
+
+                env.assign(varName, start);
+
+                let current = start;
+                if (step > 0) {
+                    while (current <= end) {
+                         this.executeBlock(stmt.body, env);
+                         current = env.get(varName) + step;
+                         env.assign(varName, current);
+                    }
+                } else {
+                     while (current >= end) {
+                         this.executeBlock(stmt.body, env);
+                         current = env.get(varName) + step;
+                         env.assign(varName, current);
+                    }
+                }
+                break;
+            }
+            case 'ProcedureCall': {
+                // Placeholder for procedure calls
+                 throw new Error(`Procedure call '${stmt.name}' not implemented yet.`);
+            }
+        }
+    }
+
+    evaluate(expr, env) {
+        switch(expr.type) {
+            case 'Literal': return expr.value;
+            case 'Identifier': return env.get(expr.name);
+            case 'BinaryExpression': {
+                const left = this.evaluate(expr.left, env);
+                const right = this.evaluate(expr.right, env);
+                const op = expr.operator;
+
+                if (op === '+') return left + right;
+                if (op === '-') return left - right;
+                if (op === '*') return left * right;
+                if (op === '/') return left / right;
+                if (op === 'DIV') return Math.floor(left / right);
+                if (op === 'MOD') return left % right;
+                if (op === '>') return left > right;
+                if (op === '<') return left < right;
+                if (op === '>=') return left >= right;
+                if (op === '<=') return left <= right;
+                if (op === '=' || op === 'EQUALS') return left === right;
+                if (op === '<>' || op === 'NOT_EQUALS') return left !== right;
+                if (op === 'AND') return left && right;
+                if (op === 'OR') return left || right;
+                break;
+            }
+            case 'UnaryExpression': {
+                 const val = this.evaluate(expr.right, env);
+                 if (expr.operator === '-') return -val;
+                 if (expr.operator === 'NOT' || expr.operator === 'ΟΧΙ') return !val;
+                 break;
+            }
+            case 'Grouping':
+                return this.evaluate(expr.expression, env);
+            case 'ArrayAccess': {
+                const arr = env.get(expr.name);
+                if (!(arr instanceof ArrayObject)) throw new Error(`'${expr.name}' is not an array.`);
+                const indices = expr.indices.map(i => this.evaluate(i, env));
+                return arr.get(indices);
+            }
+            case 'FunctionCall': {
+                // Placeholder
+                throw new Error(`Function call '${expr.name}' not implemented yet.`);
+            }
+        }
+        throw new Error(`Unknown expression type: ${expr.type}`);
     }
 }
 
