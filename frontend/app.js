@@ -1,14 +1,109 @@
 // -----------------------------------------------------------------------------
 // TOKENIZER
 // -----------------------------------------------------------------------------
-const TokenType = { ALGORITHM: 'ALGORITHM', CONSTANTS: 'CONSTANTS', DATA: 'DATA', BEGIN: 'BEGIN', END: 'END', IF: 'IF', THEN: 'THEN', ELSE: 'ELSE', FOR: 'FOR', TO: 'TO', STEP: 'STEP', REPEAT: 'REPEAT', WHILE: 'WHILE', UNTIL: 'UNTIL', ARRAY: 'ARRAY', OF: 'OF', TYPES: 'TYPES', PRINT: 'PRINT', READ: 'READ', CALCULATE: 'CALCULATE', PROCEDURE: 'PROCEDURE', FUNCTION: 'FUNCTION', INTERFACE: 'INTERFACE', INPUT: 'INPUT', OUTPUT: 'OUTPUT', MOD: 'MOD', DIV: 'DIV', AND: 'AND', OR: 'OR', NOT: 'NOT', EOLN: 'EOLN', POINTER: 'POINTER', LIST: 'LIST', INTEGER_TYPE: 'INTEGER_TYPE', REAL_TYPE: 'REAL_TYPE', BOOLEAN_TYPE: 'BOOLEAN_TYPE', CHAR_TYPE: 'CHAR_TYPE', STRING_TYPE: 'STRING_TYPE', ASSIGN: 'ASSIGN', PLUS: 'PLUS', MINUS: 'MINUS', MULTIPLY: 'MULTIPLY', DIVIDE: 'DIVIDE', EQUALS: 'EQUALS', LESS_THAN: 'LESS_THAN', GREATER_THAN: 'GREATER_THAN', LESS_EQUALS: 'LESS_EQUALS', GREATER_EQUALS: 'GREATER_EQUALS', NOT_EQUALS: 'NOT_EQUALS', LEFT_PAREN: 'LEFT_PAREN', RIGHT_PAREN: 'RIGHT_PAREN', LEFT_BRACKET: 'LEFT_BRACKET', RIGHT_BRACKET: 'RIGHT_BRACKET', COMMA: 'COMMA', COLON: 'COLON', SEMICOLON: 'SEMICOLON', DOT: 'DOT', CARET: 'CARET', PERCENT: 'PERCENT', NUMBER: 'NUMBER', STRING: 'STRING', IDENTIFIER: 'IDENTIFIER', EOF: 'EOF', };
-const GREEK_KEYWORDS = {'ΑΛΓΟΡΙΘΜΟΣ': TokenType.ALGORITHM,'ΣΤΑΘΕΡΕΣ': TokenType.CONSTANTS,'ΔΕΔΟΜΕΝΑ': TokenType.DATA,'ΑΡΧΗ': TokenType.BEGIN,'ΤΕΛΟΣ': TokenType.END,'ΕΑΝ': TokenType.IF,'ΤΟΤΕ': TokenType.THEN,'ΑΛΛΙΩΣ': TokenType.ELSE,'ΓΙΑ': TokenType.FOR,'ΕΩΣ': TokenType.TO,'ΜΕ': TokenType.STEP,'ΒΗΜΑ': TokenType.STEP,'ΕΠΑΝΑΛΑΒΕ': TokenType.REPEAT,'ΕΝΟΣΩ': TokenType.WHILE,'ΜΕΧΡΙ': TokenType.UNTIL,'ΤΥΠΟΙ': TokenType.TYPES,'ΤΥΠΩΣΕ': TokenType.PRINT,'ΔΙΑΒΑΣΕ': TokenType.READ,'ΥΠΟΛΟΓΙΣΕ': TokenType.CALCULATE,'ΔΙΑΔΙΚΑΣΙΑ': TokenType.PROCEDURE,'ΔΙΑΔΙΚΑΣΙΑΣ': TokenType.PROCEDURE,'ΣΥΝΑΡΤΗΣΗ': TokenType.FUNCTION,'ΣΥΝΑΡΤΗΣΗΣ': TokenType.FUNCTION,'ΔΙΕΠΑΦΗ': TokenType.INTERFACE,'ΕΙΣΟΔΟΣ': TokenType.INPUT,'ΕΞΟΔΟΣ': TokenType.OUTPUT,'ΑΚΕΡΑΙΟΣ': TokenType.INTEGER_TYPE,'ΠΡΑΓΜΑΤΙΚΟΣ': TokenType.REAL_TYPE,'ΛΟΓΙΚΟΣ': TokenType.BOOLEAN_TYPE,'ΧΑΡΑΚΤΗΡΑΣ': TokenType.CHAR_TYPE,'ΣΥΜΒΟΛΟΣΕΙΡΑ': TokenType.STRING_TYPE,'ΚΑΙ': TokenType.AND,'Ή': TokenType.OR,'ΟΧΙ': TokenType.NOT,};
+const TokenType = { ALGORITHM: 'ALGORITHM', CONSTANTS: 'CONSTANTS', DATA: 'DATA', BEGIN: 'BEGIN', END: 'END', IF: 'IF', THEN: 'THEN', ELSE: 'ELSE', FOR: 'FOR', TO: 'TO', STEP: 'STEP', REPEAT: 'REPEAT', WHILE: 'WHILE', UNTIL: 'UNTIL', ARRAY: 'ARRAY', OF: 'OF', TYPES: 'TYPES', PRINT: 'PRINT', READ: 'READ', CALCULATE: 'CALCULATE', PROCEDURE: 'PROCEDURE', FUNCTION: 'FUNCTION', INTERFACE: 'INTERFACE', INPUT: 'INPUT', OUTPUT: 'OUTPUT', MOD: 'MOD', DIV: 'DIV', AND: 'AND', OR: 'OR', NOT: 'NOT', EOLN: 'EOLN', POINTER: 'POINTER', LIST: 'LIST', INTEGER_TYPE: 'INTEGER_TYPE', REAL_TYPE: 'REAL_TYPE', BOOLEAN_TYPE: 'BOOLEAN_TYPE', CHAR_TYPE: 'CHAR_TYPE', STRING_TYPE: 'STRING_TYPE', ASSIGN: 'ASSIGN', PLUS: 'PLUS', MINUS: 'MINUS', MULTIPLY: 'MULTIPLY', DIVIDE: 'DIVIDE', EQUALS: 'EQUALS', LESS_THAN: 'LESS_THAN', GREATER_THAN: 'GREATER_THAN', LESS_EQUALS: 'LESS_EQUALS', GREATER_EQUALS: 'GREATER_EQUALS', NOT_EQUALS: 'NOT_EQUALS', LEFT_PAREN: 'LEFT_PAREN', RIGHT_PAREN: 'RIGHT_PAREN', LEFT_BRACKET: 'LEFT_BRACKET', RIGHT_BRACKET: 'RIGHT_BRACKET', COMMA: 'COMMA', COLON: 'COLON', SEMICOLON: 'SEMICOLON', DOT: 'DOT', CARET: 'CARET', PERCENT: 'PERCENT', NUMBER: 'NUMBER', STRING: 'STRING', IDENTIFIER: 'IDENTIFIER', EOF: 'EOF',
+END_IF: 'END_IF', END_FOR: 'END_FOR', END_WHILE: 'END_WHILE', END_PROCEDURE: 'END_PROCEDURE', END_FUNCTION: 'END_FUNCTION' };
+
+const GREEK_KEYWORDS = {'ΑΛΓΟΡΙΘΜΟΣ': TokenType.ALGORITHM,'ΣΤΑΘΕΡΕΣ': TokenType.CONSTANTS,'ΔΕΔΟΜΕΝΑ': TokenType.DATA,'ΑΡΧΗ': TokenType.BEGIN,'ΤΕΛΟΣ': TokenType.END,'ΕΑΝ': TokenType.IF,'ΤΟΤΕ': TokenType.THEN,'ΑΛΛΙΩΣ': TokenType.ELSE,'ΓΙΑ': TokenType.FOR,'ΕΩΣ': TokenType.TO,'ΜΕ': TokenType.STEP,'ΒΗΜΑ': TokenType.STEP,'ΕΠΑΝΑΛΑΒΕ': TokenType.REPEAT,'ΕΝΟΣΩ': TokenType.WHILE,'ΜΕΧΡΙ': TokenType.UNTIL,'ΤΥΠΟΙ': TokenType.TYPES,'ΤΥΠΩΣΕ': TokenType.PRINT,'ΔΙΑΒΑΣΕ': TokenType.READ,'ΥΠΟΛΟΓΙΣΕ': TokenType.CALCULATE,'ΔΙΑΔΙΚΑΣΙΑ': TokenType.PROCEDURE,'ΔΙΑΔΙΚΑΣΙΑΣ': TokenType.PROCEDURE,'ΣΥΝΑΡΤΗΣΗ': TokenType.FUNCTION,'ΣΥΝΑΡΤΗΣΗΣ': TokenType.FUNCTION,'ΔΙΕΠΑΦΗ': TokenType.INTERFACE,'ΕΙΣΟΔΟΣ': TokenType.INPUT,'ΕΞΟΔΟΣ': TokenType.OUTPUT,'ΑΚΕΡΑΙΟΣ': TokenType.INTEGER_TYPE,'ΠΡΑΓΜΑΤΙΚΟΣ': TokenType.REAL_TYPE,'ΛΟΓΙΚΟΣ': TokenType.BOOLEAN_TYPE,'ΧΑΡΑΚΤΗΡΑΣ': TokenType.CHAR_TYPE,'ΣΥΜΒΟΛΟΣΕΙΡΑ': TokenType.STRING_TYPE,'ΚΑΙ': TokenType.AND,'Ή': TokenType.OR,'ΟΧΙ': TokenType.NOT,
+'ΕΑΝ-ΤΕΛΟΣ': TokenType.END_IF, 'ΓΙΑ-ΤΕΛΟΣ': TokenType.END_FOR, 'ΕΝΟΣΩ-ΤΕΛΟΣ': TokenType.END_WHILE, 'ΤΕΛΟΣ-ΔΙΑΔΙΚΑΣΙΑΣ': TokenType.END_PROCEDURE, 'ΤΕΛΟΣ-ΣΥΝΑΡΤΗΣΗΣ': TokenType.END_FUNCTION};
 const ENGLISH_KEYWORDS = {'ARRAY': TokenType.ARRAY,'OF': TokenType.OF,'MOD': TokenType.MOD,'DIV': TokenType.DIV,'AND': TokenType.AND,'OR': TokenType.OR,'NOT': TokenType.NOT,'EOLN': TokenType.EOLN,'POINTER': TokenType.POINTER,'LIST': TokenType.LIST,'IF': TokenType.IF,'THEN': TokenType.THEN,'ELSE': TokenType.ELSE,'FOR': TokenType.FOR,'TO': TokenType.TO,'STEP': TokenType.STEP,'REPEAT': TokenType.REPEAT,'WHILE': TokenType.WHILE,'UNTIL': TokenType.UNTIL,'INTEGER': TokenType.INTEGER_TYPE,'REAL': TokenType.REAL_TYPE,'BOOLEAN': TokenType.BOOLEAN_TYPE,'CHAR': TokenType.CHAR_TYPE,'STRING': TokenType.STRING_TYPE};
 const KEYWORDS = { ...GREEK_KEYWORDS, ...ENGLISH_KEYWORDS };
 const OPERATORS = {':=': TokenType.ASSIGN,'+': TokenType.PLUS,'-': TokenType.MINUS,'*': TokenType.MULTIPLY,'/': TokenType.DIVIDE,'=': TokenType.EQUALS,'<': TokenType.LESS_THAN,'>': TokenType.GREATER_THAN,'<=': TokenType.LESS_EQUALS,'>=': TokenType.GREATER_EQUALS,'<>': TokenType.NOT_EQUALS,'(': TokenType.LEFT_PAREN,')': TokenType.RIGHT_PAREN,'[': TokenType.LEFT_BRACKET,']': TokenType.RIGHT_BRACKET,',': TokenType.COMMA,':': TokenType.COLON,';': TokenType.SEMICOLON,'.': TokenType.DOT,'^': TokenType.CARET, '%': TokenType.PERCENT};
 function isLetter(char) { return (char >= '\u0386' && char <= '\u03ce') || (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z'); }
 function isDigit(char) { return char >= '0' && char <= '9'; }
-function tokenize(code) { let tokens = []; let current = 0; let line = 1; let column = 1; while (current < code.length) { let char = code[current]; if (/\s/.test(char)) { if (char === '\n') { line++; column = 1; } else { column++; } current++; continue; } if (char === '/' && code[current + 1] === '/') { while (current < code.length && code[current] !== '\n') current++; continue; } if (char === '/' && code[current + 1] === '*') { current += 2; while (current < code.length && (code[current] !== '*' || code[current + 1] !== '/')) { if (code[current] === '\n') { line++; column = 1; } else { column++; } current++; } if(current < code.length) {current += 2; column += 2;} continue; } if (char === '"') { let value = ''; current++; while (current < code.length && code[current] !== '"') { value += code[current++]; } current++; tokens.push({ type: TokenType.STRING, value, line, column }); column += value.length + 2; continue; } if (isDigit(char)) { let value = ''; while (current < code.length && isDigit(code[current])) { value += code[current++]; } if (code[current] === '.' && isDigit(code[current + 1])) { value += code[current++]; while (current < code.length && isDigit(code[current])) { value += code[current++]; } } tokens.push({ type: TokenType.NUMBER, value: parseFloat(value), line, column }); column += value.length; continue; } let twoCharOp = code.substring(current, current + 2); if (OPERATORS[twoCharOp]) { tokens.push({ type: OPERATORS[twoCharOp], value: twoCharOp, line, column }); current += 2; column += 2; continue; } if (OPERATORS[char]) { tokens.push({ type: OPERATORS[char], value: char, line, column }); current++; column++; continue; } if (isLetter(char) || char === '_' || char === '-') { let value = ''; while (current < code.length && (isLetter(code[current]) || isDigit(code[current]) || code[current] === '_' || code[current] === '-')) { value += code[current++]; } const upperValue = KEYWORDS[value.toUpperCase()]; if (upperValue) { tokens.push({ type: upperValue, value: value.toUpperCase(), line, column }); } else { tokens.push({ type: TokenType.IDENTIFIER, value, line, column }); } column += value.length; continue; } throw new Error(`Unexpected character '${char}' at line ${line}, column ${column}`); } tokens.push({ type: TokenType.EOF, value: 'EOF', line, column }); return tokens; }
+function tokenize(code) {
+    let tokens = [];
+    let current = 0;
+    let line = 1;
+    let column = 1;
+    while (current < code.length) {
+        let char = code[current];
+        if (/\s/.test(char)) {
+            if (char === '\n') { line++; column = 1; } else { column++; }
+            current++; continue;
+        }
+        if (char === '/' && code[current + 1] === '/') {
+            while (current < code.length && code[current] !== '\n') current++; continue;
+        }
+        if (char === '/' && code[current + 1] === '*') {
+            current += 2;
+            while (current < code.length && (code[current] !== '*' || code[current + 1] !== '/')) {
+                if (code[current] === '\n') { line++; column = 1; } else { column++; }
+                current++;
+            }
+            if(current < code.length) {current += 2; column += 2;} continue;
+        }
+        if (char === '"') {
+            let value = ''; current++;
+            while (current < code.length && code[current] !== '"') { value += code[current++]; }
+            current++;
+            tokens.push({ type: TokenType.STRING, value, line, column });
+            column += value.length + 2; continue;
+        }
+        if (isDigit(char)) {
+            let value = '';
+            while (current < code.length && isDigit(code[current])) { value += code[current++]; }
+            if (code[current] === '.' && isDigit(code[current + 1])) {
+                value += code[current++];
+                while (current < code.length && isDigit(code[current])) { value += code[current++]; }
+            }
+            tokens.push({ type: TokenType.NUMBER, value: parseFloat(value), line, column });
+            column += value.length; continue;
+        }
+        let twoCharOp = code.substring(current, current + 2);
+        if (OPERATORS[twoCharOp]) {
+            tokens.push({ type: OPERATORS[twoCharOp], value: twoCharOp, line, column });
+            current += 2; column += 2; continue;
+        }
+        if (OPERATORS[char]) {
+            tokens.push({ type: OPERATORS[char], value: char, line, column });
+            current++; column++; continue;
+        }
+        if (isLetter(char) || char === '_' || char === '-') {
+            let value = '';
+            let start = current;
+            // Read until non-identifier char
+            while (current < code.length && (isLetter(code[current]) || isDigit(code[current]) || code[current] === '_' || code[current] === '-')) {
+                value += code[current++];
+            }
+
+            const upperValue = KEYWORDS[value.toUpperCase()];
+            if (upperValue) {
+                tokens.push({ type: upperValue, value: value.toUpperCase(), line, column });
+            } else {
+                // If not a keyword, check if it contains dashes. If so, it might be an identifier minus something.
+                // We split at the first dash if it's not a keyword.
+                const dashIndex = value.indexOf('-');
+                if (dashIndex !== -1) {
+                    // Backtrack
+                    const firstPart = value.substring(0, dashIndex);
+                    // If first part is empty (e.g. "-something"), then the dash was the start.
+                    // But our loop condition `isLetter` ensures we start with letter.
+                    // Actually loop condition `isLetter(char)` ensures `value` starts with letter.
+                    // So `firstPart` will be non-empty.
+
+                    // Emit identifier for first part
+                    tokens.push({ type: TokenType.IDENTIFIER, value: firstPart, line, column });
+
+                    // Reset current to after first part (which is the dash position)
+                    current = start + dashIndex;
+                    // Don't increment current, next loop will see '-' and handle it as operator.
+
+                    // Adjust column for next token? No, column calc is approximate here or we need to be precise.
+                    // Since we pushed a token, we should update column by its length.
+                    column += firstPart.length;
+                    continue;
+                }
+
+                tokens.push({ type: TokenType.IDENTIFIER, value, line, column });
+            }
+            column += value.length; continue;
+        }
+        throw new Error(`Unexpected character '${char}' at line ${line}, column ${column}`);
+    }
+    tokens.push({ type: TokenType.EOF, value: 'EOF', line, column });
+    return tokens;
+}
 
 // -----------------------------------------------------------------------------
 // PARSER
@@ -63,10 +158,7 @@ class Parser {
         const localDeclarations = this.parseDeclarations();
         this.consume(TokenType.BEGIN, `Expected 'ΑΡΧΗ' for procedure '${name}'.`);
         const body = this.parseBlock();
-        const endToken = this.consume(TokenType.IDENTIFIER, `Expected 'ΤΕΛΟΣ-ΔΙΑΔΙΚΑΣΙΑΣ' for procedure '${name}'.`);
-        if (!endToken.value.toUpperCase().startsWith('ΤΕΛΟΣ-ΔΙΑΔΙΚΑΣΙΑΣ')) {
-            throw new Error(`Expected 'ΤΕΛΟΣ-ΔΙΑΔΙΚΑΣΙΑΣ' but got '${endToken.value}'`);
-        }
+        this.consume(TokenType.END_PROCEDURE, `Expected 'ΤΕΛΟΣ-ΔΙΑΔΙΚΑΣΙΑΣ' for procedure '${name}'.`);
         return { type: 'ProcedureDeclaration', name, params, declarations: localDeclarations, body };
     }
 
@@ -91,10 +183,7 @@ class Parser {
         const localDeclarations = this.parseDeclarations();
         this.consume(TokenType.BEGIN, `Expected 'ΑΡΧΗ' for function '${name}'.`);
         const body = this.parseBlock();
-        const endToken = this.consume(TokenType.IDENTIFIER, `Expected 'ΤΕΛΟΣ-ΣΥΝΑΡΤΗΣΗΣ' for function '${name}'.`);
-        if (!endToken.value.toUpperCase().startsWith('ΤΕΛΟΣ-ΣΥΝΑΡΤΗΣΗΣ')) {
-             throw new Error(`Expected 'ΤΕΛΟΣ-ΣΥΝΑΡΤΗΣΗΣ' but got '${endToken.value}'`);
-        }
+        this.consume(TokenType.END_FUNCTION, `Expected 'ΤΕΛΟΣ-ΣΥΝΑΡΤΗΣΗΣ' for function '${name}'.`);
         return { type: 'FunctionDeclaration', name, params, returnType, declarations: localDeclarations, body };
     }
 
@@ -146,14 +235,10 @@ class Parser {
         while (true) {
             if (this.isAtEnd()) break;
             const token = this.peek();
-            if (token.type === TokenType.END || token.type === TokenType.ELSE || token.type === TokenType.UNTIL) {
+            if (token.type === TokenType.END || token.type === TokenType.ELSE || token.type === TokenType.UNTIL ||
+                token.type === TokenType.END_IF || token.type === TokenType.END_FOR || token.type === TokenType.END_WHILE ||
+                token.type === TokenType.END_PROCEDURE || token.type === TokenType.END_FUNCTION) {
                 break;
-            }
-            if (token.type === TokenType.IDENTIFIER) {
-                const upperValue = token.value.toUpperCase();
-                if (upperValue.startsWith('ΤΕΛΟΣ-') || upperValue === 'ΕΑΝ-ΤΕΛΟΣ' || upperValue === 'ΓΙΑ-ΤΕΛΟΣ' || upperValue === 'ΕΝΟΣΩ-ΤΕΛΟΣ') {
-                    break;
-                }
             }
             statements.push(this.parseStatement());
         }
@@ -184,9 +269,9 @@ class Parser {
 
     parseProcedureCall() { const name = this.consume(TokenType.IDENTIFIER, "Expected procedure name.").value; this.consume(TokenType.LEFT_PAREN, "Expected '(' after procedure name."); const args = []; if (!this.check(TokenType.RIGHT_PAREN)) { do { if(this.match(TokenType.PERCENT)) { args.push({value: this.parseExpression(), passBy: 'reference'}); } else { args.push({value: this.parseExpression(), passBy: 'value'}); } } while (this.match(TokenType.COMMA)); } this.consume(TokenType.RIGHT_PAREN, "Expected ')' after procedure arguments."); this.match(TokenType.SEMICOLON); return { type: 'ProcedureCall', name, args }; }
     parseReadStatement() { this.consume(TokenType.LEFT_PAREN, "Expected '(' after ΔΙΑΒΑΣΕ."); const args = []; if (!this.check(TokenType.RIGHT_PAREN)) { do { args.push(this.parseExpression()); } while (this.match(TokenType.COMMA)); } this.consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments."); this.match(TokenType.SEMICOLON); return { type: 'ReadStatement', args }; }
-    parseIfStatement() { const condition = this.parseExpression(); this.consume(TokenType.THEN, "Expected 'ΤΟΤΕ' after IF condition."); const thenBranch = this.parseBlock(); let elseBranch = null; if (this.match(TokenType.ELSE)) { elseBranch = this.parseBlock(); } const endToken = this.consume(TokenType.IDENTIFIER, "Expected 'ΕΑΝ-ΤΕΛΟΣ' after IF statement."); if (!endToken.value.toUpperCase().startsWith('ΕΑΝ-ΤΕΛΟΣ')) { throw new Error(`Expected 'ΕΑΝ-ΤΕΛΟΣ' but got '${endToken.value}' at line ${endToken.line}`); } this.match(TokenType.SEMICOLON); return { type: 'IfStatement', condition, thenBranch, elseBranch }; }
-    parseForStatement() { const variable = this.consume(TokenType.IDENTIFIER, "Expected loop variable for FOR loop.").value; this.consume(TokenType.ASSIGN, "Expected ':=' after loop variable."); const start = this.parseExpression(); this.consume(TokenType.TO, "Expected 'ΕΩΣ' in FOR loop."); const end = this.parseExpression(); let step = { type: 'Literal', value: 1 }; if (this.match(TokenType.STEP) || this.match(TokenType.IDENTIFIER, "ΜΕ")) { step = this.parseExpression(); } this.consume(TokenType.REPEAT, "Expected 'ΕΠΑΝΑΛΑΒΕ' in FOR loop."); const body = this.parseBlock(); const endToken = this.consume(TokenType.IDENTIFIER, "Expected 'ΓΙΑ-ΤΕΛΟΣ' after FOR loop body."); if (!endToken.value.toUpperCase().startsWith('ΓΙΑ-ΤΕΛΟΣ')) { throw new Error(`Expected 'ΓΙΑ-ΤΕΛΟΣ' but got '${endToken.value}' at line ${endToken.line}`); } this.match(TokenType.SEMICOLON); return { type: 'ForStatement', variable, start, end, step, body }; }
-    parseWhileStatement() { const condition = this.parseExpression(); this.consume(TokenType.REPEAT, "Expected 'ΕΠΑΝΑΛΑΒΕ' in WHILE loop."); const body = this.parseBlock(); const endToken = this.consume(TokenType.IDENTIFIER, "Expected 'ΕΝΟΣΩ-ΤΕΛΟΣ' after WHILE loop body."); if (!endToken.value.toUpperCase().startsWith('ΕΝΟΣΩ-ΤΕΛΟΣ')) { throw new Error(`Expected 'ΕΝΟΣΩ-ΤΕΛΟΣ' but got '${endToken.value}' at line ${endToken.line}`); } this.match(TokenType.SEMICOLON); return { type: 'WhileStatement', condition, body }; }
+    parseIfStatement() { const condition = this.parseExpression(); this.consume(TokenType.THEN, "Expected 'ΤΟΤΕ' after IF condition."); const thenBranch = this.parseBlock(); let elseBranch = null; if (this.match(TokenType.ELSE)) { elseBranch = this.parseBlock(); } this.consume(TokenType.END_IF, "Expected 'ΕΑΝ-ΤΕΛΟΣ' after IF statement."); this.match(TokenType.SEMICOLON); return { type: 'IfStatement', condition, thenBranch, elseBranch }; }
+    parseForStatement() { const variable = this.consume(TokenType.IDENTIFIER, "Expected loop variable for FOR loop.").value; this.consume(TokenType.ASSIGN, "Expected ':=' after loop variable."); const start = this.parseExpression(); this.consume(TokenType.TO, "Expected 'ΕΩΣ' in FOR loop."); const end = this.parseExpression(); let step = { type: 'Literal', value: 1 }; if (this.match(TokenType.STEP) || this.match(TokenType.IDENTIFIER, "ΜΕ")) { step = this.parseExpression(); } this.consume(TokenType.REPEAT, "Expected 'ΕΠΑΝΑΛΑΒΕ' in FOR loop."); const body = this.parseBlock(); this.consume(TokenType.END_FOR, "Expected 'ΓΙΑ-ΤΕΛΟΣ' after FOR loop body."); this.match(TokenType.SEMICOLON); return { type: 'ForStatement', variable, start, end, step, body }; }
+    parseWhileStatement() { const condition = this.parseExpression(); this.consume(TokenType.REPEAT, "Expected 'ΕΠΑΝΑΛΑΒΕ' in WHILE loop."); const body = this.parseBlock(); this.consume(TokenType.END_WHILE, "Expected 'ΕΝΟΣΩ-ΤΕΛΟΣ' after WHILE loop body."); this.match(TokenType.SEMICOLON); return { type: 'WhileStatement', condition, body }; }
     parseRepeatUntilStatement() { const body = this.parseBlock(); this.consume(TokenType.UNTIL, "Expected 'ΜΕΧΡΙ' after REPEAT loop body."); const condition = this.parseExpression(); this.match(TokenType.SEMICOLON); return { type: 'RepeatUntilStatement', condition, body }; }
     parsePrintStatement() { this.consume(TokenType.LEFT_PAREN, "Expected '(' after ΤΥΠΩΣΕ."); const expressions = []; if (!this.check(TokenType.RIGHT_PAREN)) { do { expressions.push(this.parseExpression()); } while (this.match(TokenType.COMMA)); } this.consume(TokenType.RIGHT_PAREN, "Expected ')' after expressions in ΤΥΠΩΣΕ."); this.match(TokenType.SEMICOLON); return { type: 'PrintStatement', expressions }; }
     
@@ -516,12 +601,26 @@ class Interpreter {
                      const arg = stmt.args[i];
 
                      if (param.passBy === 'reference') {
-                         if (arg.value.type !== 'Identifier') {
-                             throw new Error(`Argument for reference parameter '${param.name}' must be a variable.`);
+                         if (arg.value.type === 'Identifier') {
+                             // Pass the existing box
+                             const argBox = env.getBox(arg.value.name);
+                             procEnv.defineBox(param.name, argBox);
+                         } else if (arg.value.type === 'ArrayAccess') {
+                             // Create a proxy box for the array element
+                             const arrName = arg.value.name;
+                             const arr = env.get(arrName);
+                             if (!(arr instanceof ArrayObject)) throw new Error(`'${arrName}' is not an array.`);
+
+                             const indices = arg.value.indices.map(idx => this.evaluate(idx, env));
+
+                             const proxyBox = {
+                                 get value() { return arr.get(indices); },
+                                 set value(val) { arr.set(indices, val); }
+                             };
+                             procEnv.defineBox(param.name, proxyBox);
+                         } else {
+                             throw new Error(`Argument for reference parameter '${param.name}' must be a variable or array element.`);
                          }
-                         // Pass the existing box
-                         const argBox = env.getBox(arg.value.name);
-                         procEnv.defineBox(param.name, argBox);
                      } else {
                          // Pass by value
                          let val = this.evaluate(arg.value, env);
@@ -610,12 +709,23 @@ class Interpreter {
                      // In the patch, I am implementing evaluate.
 
                      if (param.passBy === 'reference') {
-                         // This requires the argument expression to be an Identifier
-                         if (argExpr.type !== 'Identifier') {
-                              throw new Error(`Argument for reference parameter '${param.name}' must be a variable.`);
+                         if (argExpr.type === 'Identifier') {
+                              const argBox = env.getBox(argExpr.name);
+                              funcEnv.defineBox(param.name, argBox);
+                         } else if (argExpr.type === 'ArrayAccess') {
+                             const arrName = argExpr.name;
+                             const arr = env.get(arrName);
+                             if (!(arr instanceof ArrayObject)) throw new Error(`'${arrName}' is not an array.`);
+                             const indices = argExpr.indices.map(idx => this.evaluate(idx, env));
+
+                             const proxyBox = {
+                                 get value() { return arr.get(indices); },
+                                 set value(val) { arr.set(indices, val); }
+                             };
+                             funcEnv.defineBox(param.name, proxyBox);
+                         } else {
+                              throw new Error(`Argument for reference parameter '${param.name}' must be a variable or array element.`);
                          }
-                         const argBox = env.getBox(argExpr.name);
-                         funcEnv.defineBox(param.name, argBox);
                      } else {
                          let val = this.evaluate(argExpr, env);
                          if (val instanceof ArrayObject) {
