@@ -13,7 +13,16 @@
     <main>
         <div class="container">
             <div class="editor-container">
-                <div class="panel-header">Κώδικας Ψευδογλώσσας</div>
+                <div class="panel-header">
+                    <span>Κώδικας Ψευδογλώσσας</span>
+                    <select id="example-selector">
+                        <option value="" disabled selected>Επιλέξτε Παράδειγμα...</option>
+                        <option value="HELLO">Hello World</option>
+                        <option value="FIBONACCI">Fibonacci</option>
+                        <option value="BUBBLE_SORT">Ταξινόμηση Φυσαλίδας</option>
+                        <option value="AVERAGE">Μέσος Όρος</option>
+                    </select>
+                </div>
                 <div class="editor-wrapper">
                     <div id="line-numbers">1</div>
                     <textarea id="code-editor" placeholder="Επικολλήστε τον κώδικά σας εδώ..."></textarea>
@@ -27,6 +36,7 @@
         <button id="run-button">Εκτέλεση</button>
     </main>
     <footer><p>Ένας custom-made compiler για τον αγαπητό φοιτητή του ΕΑΠ</p></footer>
+    <script src="core.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
