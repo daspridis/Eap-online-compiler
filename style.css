@@ -23,6 +23,8 @@
     --scroll-thumb: #93a1a1;
     --scroll-thumb-hover: #586e75;
 
+    --selection-bg: rgba(38, 139, 210, 0.3); /* Solarized Blue with opacity */
+
     /* Syntax Highlighting Colors (Light/Solarized) */
     --token-keyword: #859900; /* Green */
     --token-builtin: #268bd2; /* Blue */
@@ -58,6 +60,8 @@
     --button-hover: #ff2a75;
     --scroll-thumb: #ff0055;
     --scroll-thumb-hover: #ff2a75;
+
+    --selection-bg: rgba(255, 0, 85, 0.3); /* Neon Pink with opacity */
 
     /* Syntax Highlighting Colors (Cyberpunk) */
     --token-keyword: #ff0055; /* Pink */
@@ -136,6 +140,11 @@ textarea, pre { margin: 0; padding: 1rem; border: none; font-family: var(--font-
     white-space: pre;
     resize: none;
     outline: none;
+}
+
+#code-editor::selection {
+    background-color: var(--selection-bg);
+    color: transparent;
 }
 
 /* Terminal Styles */
