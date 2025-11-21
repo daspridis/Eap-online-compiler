@@ -9,6 +9,7 @@
 <body>
     <header>
         <h1>EAP Online Interpreter</h1>
+        <button id="theme-toggle">🌙 Dark Mode</button>
     </header>
     <main>
         <div class="container">
@@ -25,7 +26,10 @@
                 </div>
                 <div class="editor-wrapper">
                     <div id="line-numbers">1</div>
-                    <textarea id="code-editor" placeholder="Επικολλήστε τον κώδικά σας εδώ..."></textarea>
+                    <div class="code-area">
+                        <pre id="highlighting" aria-hidden="true"><code id="highlighting-content"></code></pre>
+                        <textarea id="code-editor" placeholder="Επικολλήστε τον κώδικά σας εδώ..." spellcheck="false"></textarea>
+                    </div>
                 </div>
             </div>
             <div class="output-container">
