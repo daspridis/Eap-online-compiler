@@ -93,9 +93,6 @@
         }
 
         #theme-toggle-landing {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
             background: transparent;
             border: 1px solid var(--text-color);
             color: var(--text-color);
@@ -109,11 +106,22 @@
             color: var(--button-bg);
             border-color: var(--button-bg);
         }
+
+        /* Header for Landing Page */
+        .landing-header {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
-    <button id="theme-toggle-landing">🌙 Dark Mode</button>
+    <div class="landing-header">
+        <button id="theme-toggle-landing">🌙 Dark Mode</button>
+    </div>
 
     <div class="hero">
         <h1>Ψευδογλώσσα Interpreter</h1>
