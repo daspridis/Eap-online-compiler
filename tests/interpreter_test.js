@@ -3,34 +3,34 @@ const { tokenize, Parser, Interpreter, Environment } = require('../frontend/core
 const assert = require('assert');
 
 // Helper to run code and check output
-function runCode(code, inputs = []) {
+async function runCode(code, inputs = []) {
     const tokens = tokenize(code);
     const parser = new Parser(tokens);
     const ast = parser.parse();
     const interpreter = new Interpreter();
 
     let inputIndex = 0;
-    interpreter.setInputProvider((promptMsg) => {
+    interpreter.setInputProvider(async (promptMsg) => {
         if (inputIndex < inputs.length) {
             return inputs[inputIndex++];
         }
         return null;
     });
 
-    return interpreter.interpret(ast);
+    return await interpreter.interpret(ast);
 }
 
-function testHello() {
+async function testHello() {
     const code = `ΑΛΓΟΡΙΘΜΟΣ Hello
 ΑΡΧΗ
     ΤΥΠΩΣΕ("Hello World")
 ΤΕΛΟΣ`;
-    const result = runCode(code);
+    const result = await runCode(code);
     assert.strictEqual(result.output.trim(), "Hello World");
     console.log("testHello passed");
 }
 
-function testArithmetic() {
+async function testArithmetic() {
     const code = `ΑΛΓΟΡΙΘΜΟΣ Arithmetic
     ΔΕΔΟΜΕΝΑ A, B : ΑΚΕΡΑΙΟΣ;
     ΑΡΧΗ
@@ -42,7 +42,7 @@ function testArithmetic() {
         ΤΥΠΩΣΕ(A DIV B);
         ΤΥΠΩΣΕ(A MOD B);
     ΤΕΛΟΣ`;
-    const result = runCode(code);
+    const result = await runCode(code);
     const lines = result.output.trim().split('\n');
     assert.strictEqual(lines[0].trim(), "13");
     assert.strictEqual(lines[1].trim(), "7");
@@ -52,7 +52,7 @@ function testArithmetic() {
     console.log("testArithmetic passed");
 }
 
-function testIf() {
+async function testIf() {
     const code = `ΑΛΓΟΡΙΘΜΟΣ TestIf
     ΔΕΔΟΜΕΝΑ X : ΑΚΕΡΑΙΟΣ;
     ΑΡΧΗ
@@ -63,12 +63,12 @@ function testIf() {
             ΤΥΠΩΣΕ("Smaller")
         ΕΑΝ-ΤΕΛΟΣ
     ΤΕΛΟΣ`;
-    const result = runCode(code);
+    const result = await runCode(code);
     assert.strictEqual(result.output.trim(), "Greater");
     console.log("testIf passed");
 }
 
-function testLoop() {
+async function testLoop() {
     const code = `ΑΛΓΟΡΙΘΜΟΣ TestLoop
     ΔΕΔΟΜΕΝΑ I : ΑΚΕΡΑΙΟΣ;
     ΑΡΧΗ
@@ -76,7 +76,7 @@ function testLoop() {
             ΤΥΠΩΣΕ(I)
         ΓΙΑ-ΤΕΛΟΣ
     ΤΕΛΟΣ`;
-    const result = runCode(code);
+    const result = await runCode(code);
     const lines = result.output.trim().split('\n');
     assert.strictEqual(lines.length, 5);
     assert.strictEqual(lines[0].trim(), "1");
@@ -84,26 +84,26 @@ function testLoop() {
     console.log("testLoop passed");
 }
 
-function testCaseInsensitive() {
+async function testCaseInsensitive() {
     const code = `Αλγόριθμος TestCase
     Δεδομένα x : Ακέραιος;
     Αρχή
         x := 10;
         Τύπωσε(x)
     Τέλος`;
-    const result = runCode(code);
+    const result = await runCode(code);
     assert.strictEqual(result.output.trim(), "10");
     console.log("testCaseInsensitive passed");
 }
 
-function testRead() {
+async function testRead() {
     const code = `ΑΛΓΟΡΙΘΜΟΣ TestRead
     ΔΕΔΟΜΕΝΑ X : ΑΚΕΡΑΙΟΣ;
     ΑΡΧΗ
         ΔΙΑΒΑΣΕ(X);
         ΤΥΠΩΣΕ(X * 2);
     ΤΕΛΟΣ`;
-    const result = runCode(code, ["21"]);
+    const result = await runCode(code, ["21"]);
     // Output includes the input echoed? Based on my implementation in core.js:
     // this.outputBuffer.push(input);
     // So output will be "21\n42"
@@ -113,7 +113,7 @@ function testRead() {
     console.log("testRead passed");
 }
 
-function testBubbleSort() {
+async function testBubbleSort() {
     // Using the example code
     const code = `ΑΛΓΟΡΙΘΜΟΣ BubbleSort
 ΣΤΑΘΕΡΕΣ N = 5;
@@ -140,7 +140,7 @@ function testBubbleSort() {
         ΤΥΠΩΣΕ(A[I])
     ΓΙΑ-ΤΕΛΟΣ
 ΤΕΛΟΣ`;
-    const result = runCode(code);
+    const result = await runCode(code);
     const lines = result.output.trim().split('\n');
     // Expected: 10, 20, 30, 40, 50
     assert.strictEqual(lines[0].trim(), "10");
@@ -151,16 +151,18 @@ function testBubbleSort() {
     console.log("testBubbleSort passed");
 }
 
-try {
-    testHello();
-    testArithmetic();
-    testIf();
-    testLoop();
-    testCaseInsensitive();
-    testRead();
-    testBubbleSort();
-    console.log("All tests passed!");
-} catch (e) {
-    console.error("Test failed:", e);
-    process.exit(1);
-}
+(async () => {
+    try {
+        await testHello();
+        await testArithmetic();
+        await testIf();
+        await testLoop();
+        await testCaseInsensitive();
+        await testRead();
+        await testBubbleSort();
+        console.log("All tests passed!");
+    } catch (e) {
+        console.error("Test failed:", e);
+        process.exit(1);
+    }
+})();

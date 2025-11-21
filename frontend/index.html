@@ -33,8 +33,14 @@
                 </div>
             </div>
             <div class="output-container">
-                <div class="panel-header">Αποτέλεσμα</div>
-                <pre id="output-display"></pre>
+                <div class="panel-header">Αποτέλεσμα / Terminal</div>
+                <div id="terminal-window">
+                    <div id="terminal-output"></div>
+                    <div id="terminal-input-line" style="display: none;">
+                        <span id="terminal-prompt">&gt;</span>
+                        <input type="text" id="terminal-input" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
             </div>
         </div>
         <button id="run-button">Εκτέλεση</button>

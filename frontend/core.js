@@ -451,6 +451,7 @@ class Interpreter {
         this.globalEnv = new Environment();
         this.outputBuffer = [];
         this.inputProvider = null;
+        this.outputCallback = null;
     }
 
     // Allow setting a custom input provider for testing or non-browser environments
@@ -458,7 +459,11 @@ class Interpreter {
         this.inputProvider = provider;
     }
 
-    interpret(ast) {
+    setOutputCallback(callback) {
+        this.outputCallback = callback;
+    }
+
+    async interpret(ast) {
         this.outputBuffer = [];
         this.globalEnv = new Environment(); // Reset env for each run
 
@@ -468,8 +473,8 @@ class Interpreter {
         try {
             if (ast.type !== 'Program') throw new Error("Expected Program node");
 
-            this.processDeclarations(ast.declarations, this.globalEnv);
-            this.executeBlock(ast.body, this.globalEnv);
+            await this.processDeclarations(ast.declarations, this.globalEnv);
+            await this.executeBlock(ast.body, this.globalEnv);
 
             return { output: this.outputBuffer.join('\n'), error: null };
         } catch (e) {
@@ -477,10 +482,10 @@ class Interpreter {
         }
     }
 
-    processDeclarations(declarations, env) {
+    async processDeclarations(declarations, env) {
         for (const decl of declarations) {
             if (decl.type === 'ConstantDeclaration') {
-                 const val = this.evaluate(decl.value, env);
+                 const val = await this.evaluate(decl.value, env);
                  env.define(decl.name, val);
             } else if (decl.type === 'VariableDeclaration') {
                 if (decl.varType.type === 'ArrayType') {
@@ -500,20 +505,21 @@ class Interpreter {
         }
     }
 
-    executeBlock(statements, env) {
+    async executeBlock(statements, env) {
         for (const stmt of statements) {
-            this.execute(stmt, env);
+            await this.execute(stmt, env);
         }
     }
 
-    execute(stmt, env) {
+    async execute(stmt, env) {
         switch (stmt.type) {
             case 'AssignmentStatement': {
-                const val = this.evaluate(stmt.value, env);
+                const val = await this.evaluate(stmt.value, env);
                 if (stmt.indices && stmt.indices.length > 0) {
                     const arr = env.get(stmt.identifier);
                     if (!(arr instanceof ArrayObject)) throw new Error(`'${stmt.identifier}' is not an array.`);
-                    const indices = stmt.indices.map(idx => this.evaluate(idx, env));
+                    const indices = [];
+                    for(const idx of stmt.indices) indices.push(await this.evaluate(idx, env));
                     arr.set(indices, val);
                 } else {
                     env.assign(stmt.identifier, val);
@@ -521,8 +527,13 @@ class Interpreter {
                 break;
             }
             case 'PrintStatement': {
-                const output = stmt.expressions.map(expr => this.evaluate(expr, env)).join(' ');
+                const parts = [];
+                for(const expr of stmt.expressions) {
+                    parts.push(await this.evaluate(expr, env));
+                }
+                const output = parts.join(' ');
                 this.outputBuffer.push(output);
+                if (this.outputCallback) this.outputCallback(output);
                 break;
             }
             case 'ReadStatement': {
@@ -534,7 +545,7 @@ class Interpreter {
                         targetName = arg.name;
                     } else if (arg.type === 'ArrayAccess') {
                         targetName = arg.name;
-                        targetIndices = arg.indices.map(i => this.evaluate(i, env));
+                        for(const idx of arg.indices) targetIndices.push(await this.evaluate(idx, env));
                     } else {
                         throw new Error("READ requires a variable.");
                     }
@@ -545,7 +556,7 @@ class Interpreter {
 
                     let input;
                     if (this.inputProvider) {
-                        input = this.inputProvider(promptMsg);
+                        input = await this.inputProvider(promptMsg);
                     } else if (typeof window !== 'undefined' && window.prompt) {
                         input = window.prompt(promptMsg);
                     } else {
@@ -559,6 +570,7 @@ class Interpreter {
                     // In the original code: this.outputBuffer.push(input);
                     // This effectively echoes the input to the output display, which is good for log.
                     this.outputBuffer.push(input);
+                    if (this.outputCallback) this.outputCallback(input);
 
                     let value = input;
                     if (!isNaN(input) && input.trim() !== '') {
@@ -577,29 +589,29 @@ class Interpreter {
                 break;
             }
             case 'IfStatement': {
-                if (this.evaluate(stmt.condition, env)) {
-                    this.executeBlock(stmt.thenBranch, env);
+                if (await this.evaluate(stmt.condition, env)) {
+                    await this.executeBlock(stmt.thenBranch, env);
                 } else if (stmt.elseBranch) {
-                    this.executeBlock(stmt.elseBranch, env);
+                    await this.executeBlock(stmt.elseBranch, env);
                 }
                 break;
             }
             case 'WhileStatement': {
-                while(this.evaluate(stmt.condition, env)) {
-                    this.executeBlock(stmt.body, env);
+                while(await this.evaluate(stmt.condition, env)) {
+                    await this.executeBlock(stmt.body, env);
                 }
                 break;
             }
              case 'RepeatUntilStatement': {
                 do {
-                    this.executeBlock(stmt.body, env);
-                } while (!this.evaluate(stmt.condition, env));
+                    await this.executeBlock(stmt.body, env);
+                } while (!(await this.evaluate(stmt.condition, env)));
                 break;
             }
              case 'ForStatement': {
-                const start = this.evaluate(stmt.start, env);
-                const end = this.evaluate(stmt.end, env);
-                const step = this.evaluate(stmt.step, env);
+                const start = await this.evaluate(stmt.start, env);
+                const end = await this.evaluate(stmt.end, env);
+                const step = await this.evaluate(stmt.step, env);
                 const varName = stmt.variable;
 
                 // Loop variable implicitly declared if not exists?
@@ -613,13 +625,13 @@ class Interpreter {
                 let current = start;
                 if (step > 0) {
                     while (current <= end) {
-                         this.executeBlock(stmt.body, env);
+                         await this.executeBlock(stmt.body, env);
                          current = env.get(varName) + step;
                          env.assign(varName, current);
                     }
                 } else {
                      while (current >= end) {
-                         this.executeBlock(stmt.body, env);
+                         await this.executeBlock(stmt.body, env);
                          current = env.get(varName) + step;
                          env.assign(varName, current);
                     }
@@ -652,7 +664,8 @@ class Interpreter {
                              const arr = env.get(arrName);
                              if (!(arr instanceof ArrayObject)) throw new Error(`'${arrName}' is not an array.`);
 
-                             const indices = arg.value.indices.map(idx => this.evaluate(idx, env));
+                             const indices = [];
+                             for(const idx of arg.value.indices) indices.push(await this.evaluate(idx, env));
 
                              const proxyBox = {
                                  get value() { return arr.get(indices); },
@@ -664,7 +677,7 @@ class Interpreter {
                          }
                      } else {
                          // Pass by value
-                         let val = this.evaluate(arg.value, env);
+                         let val = await this.evaluate(arg.value, env);
                          if (val instanceof ArrayObject) {
                              val = val.clone();
                          }
@@ -672,20 +685,20 @@ class Interpreter {
                      }
                  }
 
-                 this.processDeclarations(decl.declarations, procEnv);
-                 this.executeBlock(decl.body, procEnv);
+                 await this.processDeclarations(decl.declarations, procEnv);
+                 await this.executeBlock(decl.body, procEnv);
                  break;
             }
         }
     }
 
-    evaluate(expr, env) {
+    async evaluate(expr, env) {
         switch(expr.type) {
             case 'Literal': return expr.value;
             case 'Identifier': return env.get(expr.name);
             case 'BinaryExpression': {
-                const left = this.evaluate(expr.left, env);
-                const right = this.evaluate(expr.right, env);
+                const left = await this.evaluate(expr.left, env);
+                const right = await this.evaluate(expr.right, env);
                 const op = expr.operator;
 
                 if (op === '+') return left + right;
@@ -705,17 +718,18 @@ class Interpreter {
                 break;
             }
             case 'UnaryExpression': {
-                 const val = this.evaluate(expr.right, env);
+                 const val = await this.evaluate(expr.right, env);
                  if (expr.operator === '-') return -val;
                  if (expr.operator === 'NOT' || expr.operator === 'ΟΧΙ') return !val;
                  break;
             }
             case 'Grouping':
-                return this.evaluate(expr.expression, env);
+                return await this.evaluate(expr.expression, env);
             case 'ArrayAccess': {
                 const arr = env.get(expr.name);
                 if (!(arr instanceof ArrayObject)) throw new Error(`'${expr.name}' is not an array.`);
-                const indices = expr.indices.map(i => this.evaluate(i, env));
+                const indices = [];
+                for(const i of expr.indices) indices.push(await this.evaluate(i, env));
                 return arr.get(indices);
             }
             case 'FunctionCall': {
@@ -747,7 +761,8 @@ class Interpreter {
                              const arrName = argExpr.name;
                              const arr = env.get(arrName);
                              if (!(arr instanceof ArrayObject)) throw new Error(`'${arrName}' is not an array.`);
-                             const indices = argExpr.indices.map(idx => this.evaluate(idx, env));
+                             const indices = [];
+                             for(const idx of argExpr.indices) indices.push(await this.evaluate(idx, env));
 
                              const proxyBox = {
                                  get value() { return arr.get(indices); },
@@ -758,7 +773,7 @@ class Interpreter {
                               throw new Error(`Argument for reference parameter '${param.name}' must be a variable or array element.`);
                          }
                      } else {
-                         let val = this.evaluate(argExpr, env);
+                         let val = await this.evaluate(argExpr, env);
                          if (val instanceof ArrayObject) {
                              val = val.clone();
                          }
@@ -766,8 +781,8 @@ class Interpreter {
                      }
                  }
 
-                 this.processDeclarations(decl.declarations, funcEnv);
-                 this.executeBlock(decl.body, funcEnv);
+                 await this.processDeclarations(decl.declarations, funcEnv);
+                 await this.executeBlock(decl.body, funcEnv);
 
                  // Return the value of the variable with function name
                  return funcEnv.get(expr.name);

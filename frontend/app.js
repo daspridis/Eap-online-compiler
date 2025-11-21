@@ -78,9 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const highlightingContent = document.getElementById('highlighting-content');
     const lineNumbers = document.getElementById('line-numbers');
     const runButton = document.getElementById('run-button');
-    const outputDisplay = document.getElementById('output-display');
     const exampleSelector = document.getElementById('example-selector');
     const themeToggle = document.getElementById('theme-toggle');
+
+    // Terminal Elements
+    const terminalOutput = document.getElementById('terminal-output');
+    const terminalInputLine = document.getElementById('terminal-input-line');
+    const terminalInput = document.getElementById('terminal-input');
+    const terminalPrompt = document.getElementById('terminal-prompt');
 
     // -----------------------------------
     // SYNTAX HIGHLIGHTING
@@ -298,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -----------------------------------
-    // EXECUTION
+    // TERMINAL & EXECUTION
     // -----------------------------------
     const clearErrorHighlights = () => {
         const lineNums = document.querySelectorAll('.line-num');
@@ -312,42 +317,81 @@ document.addEventListener('DOMContentLoaded', () => {
             const lineElement = lineNumbers.children[line - 1];
             if (lineElement) {
                 lineElement.classList.add('error-line');
-                // Scroll to error?
-                // lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
     };
 
-    runButton.addEventListener('click', () => {
-        const pseudocode = codeEditor.value;
-        outputDisplay.style.color = 'var(--output-text)'; // Reset color
-        outputDisplay.textContent = 'Running...';
-        clearErrorHighlights();
+    const printToTerminal = (text, type = 'output') => {
+        const line = document.createElement('div');
+        line.textContent = text;
+        line.className = `term-${type}`;
+        terminalOutput.appendChild(line);
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    };
 
-        // Small delay to allow UI to update
-        setTimeout(() => {
-            try {
-                const tokens = tokenize(pseudocode);
-                const parser = new Parser(tokens);
-                const ast = parser.parse();
-                const interpreter = new Interpreter();
-                const result = interpreter.interpret(ast);
+    const clearTerminal = () => {
+        terminalOutput.innerHTML = '';
+        terminalInputLine.style.display = 'none';
+    };
 
-                if (result.error) {
-                     outputDisplay.textContent = `Execution Error:\n\n${result.error}`;
-                     outputDisplay.style.color = '#fa383e';
-                     highlightErrorLine(result.error);
-                } else {
-                     outputDisplay.textContent = result.output;
+    // Async Input Provider
+    const inputProvider = (promptMsg) => {
+        return new Promise((resolve) => {
+            printToTerminal(promptMsg, 'info');
+            terminalInputLine.style.display = 'flex';
+            terminalInput.value = '';
+            terminalInput.focus();
+
+            const handleEnter = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = terminalInput.value;
+                    terminalInputLine.style.display = 'none';
+                    terminalInput.removeEventListener('keydown', handleEnter);
+                    printToTerminal(`> ${val}`, 'input-echo');
+                    resolve(val);
                 }
+            };
 
-            } catch (error) {
-                outputDisplay.textContent = `Parsing Error:\n\n${error.message}`;
-                outputDisplay.style.color = '#fa383e';
-                highlightErrorLine(error.message);
-                console.error(error);
+            terminalInput.addEventListener('keydown', handleEnter);
+        });
+    };
+
+    runButton.addEventListener('click', async () => {
+        const pseudocode = codeEditor.value;
+        clearTerminal();
+        clearErrorHighlights();
+        printToTerminal('Compiling...', 'info');
+
+        try {
+            // Use timeout to allow UI to update if sync parsing is slow, though parsing is usually fast.
+            // But interpret is now async.
+            const tokens = tokenize(pseudocode);
+            const parser = new Parser(tokens);
+            const ast = parser.parse();
+
+            printToTerminal('Running...', 'info');
+
+            const interpreter = new Interpreter();
+            interpreter.setInputProvider(inputProvider);
+            interpreter.setOutputCallback((text) => {
+                printToTerminal(text, 'output');
+            });
+
+            const result = await interpreter.interpret(ast);
+
+            if (result.error) {
+                 printToTerminal(`\nRuntime Error: ${result.error}`, 'error');
+                 highlightErrorLine(result.error);
+            } else {
+                 printToTerminal('\nExecution finished.', 'success');
             }
-        }, 10);
+
+        } catch (error) {
+            printToTerminal(`\nParsing Error: ${error.message}`, 'error');
+            highlightErrorLine(error.message);
+            console.error(error);
+        }
     });
 
     // -----------------------------------
