@@ -106,7 +106,25 @@ main { flex: 1; display: flex; flex-direction: column; padding: 1rem; gap: 1rem;
 /* Code Editor Area with Highlighting */
 .code-area { position: relative; flex: 1; display: flex; overflow: hidden; }
 
-textarea, pre { margin: 0; padding: 1rem; border: none; font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.5; }
+textarea, pre {
+    margin: 0;
+    padding: 1rem;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    vertical-align: top;
+}
+
+/* Ensure code inside pre inherits perfectly */
+pre code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    padding: 0;
+    margin: 0;
+    white-space: pre;
+}
 
 /* The highlighting pre element is behind */
 #highlighting {
