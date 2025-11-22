@@ -1,0 +1,241 @@
+:root {
+    /* Base Variables */
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+    /* LIGHT MODE: Linux Terminal Style (Solarized Light inspired) */
+    --bg-color: #fdf6e3;
+    --text-color: #657b83;
+    --header-bg: #eee8d5;
+    --header-text: #586e75;
+    --panel-bg: #fdf6e3;
+    --panel-header-bg: #eee8d5;
+    --panel-header-border: #93a1a1;
+    --line-num-bg: #eee8d5;
+    --line-num-text: #93a1a1;
+    --line-num-border: #93a1a1;
+    --editor-text: #586e75;
+    --output-bg: #002b36; /* Dark terminal for output contrast */
+    --output-text: #839496;
+    --button-bg: #2aa198;
+    --button-hover: #268bd2;
+    --scroll-track: transparent;
+    --scroll-thumb: #93a1a1;
+    --scroll-thumb-hover: #586e75;
+
+    --selection-bg: rgba(38, 139, 210, 0.3); /* Solarized Blue with opacity */
+
+    /* Syntax Highlighting Colors (Light/Solarized) */
+    --token-keyword: #859900; /* Green */
+    --token-builtin: #268bd2; /* Blue */
+    --token-string: #2aa198; /* Cyan */
+    --token-number: #d33682; /* Magenta */
+    --token-comment: #93a1a1; /* Grey */
+    --token-operator: #b58900; /* Yellow */
+    --token-type: #6c71c4; /* Violet */
+
+    /* Terminal Specifics (Light Mode) */
+    --term-font: "Courier New", Courier, monospace;
+    --term-success: #859900;
+    --term-error: #dc322f;
+    --term-info: #268bd2;
+    --term-input: #b58900;
+}
+
+[data-theme="dark"] {
+    /* DARK MODE: Cyberpunk (Neon / Dark) */
+    --bg-color: #0b0c15; /* Deep dark blue/black */
+    --text-color: #e0e6ed;
+    --header-bg: #12141d;
+    --panel-bg: #12141d;
+    --panel-header-bg: #1a1c29;
+    --panel-header-border: #ff0055; /* Neon Pink Border */
+    --line-num-bg: #0b0c15;
+    --line-num-text: #565b70;
+    --line-num-border: #2a2d3e;
+    --editor-text: #e0e6ed;
+    --output-bg: #050505; /* Pitch black terminal */
+    --output-text: #00ff9f; /* Cyber Green */
+    --button-bg: #ff0055; /* Neon Pink */
+    --button-hover: #ff2a75;
+    --scroll-thumb: #ff0055;
+    --scroll-thumb-hover: #ff2a75;
+
+    --selection-bg: rgba(255, 0, 85, 0.3); /* Neon Pink with opacity */
+
+    /* Syntax Highlighting Colors (Cyberpunk) */
+    --token-keyword: #ff0055; /* Pink */
+    --token-builtin: #00f3ff; /* Cyan */
+    --token-string: #ffee00; /* Yellow */
+    --token-number: #bd00ff; /* Purple */
+    --token-comment: #565b70; /* Muted Blue */
+    --token-operator: #00ff9f; /* Green */
+    --token-type: #00f3ff;
+
+    /* Terminal Specifics (Dark Mode) */
+    --term-font: "Courier New", Courier, monospace;
+    --term-success: #00ff9f;
+    --term-error: #ff0055;
+    --term-info: #00f3ff;
+    --term-input: #ffee00;
+}
+
+body { font-family: var(--font-ui); margin: 0; background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
+header {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+    border-bottom: 2px solid var(--panel-header-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+main { flex: 1; display: flex; flex-direction: column; padding: 1rem; gap: 1rem; }
+.container { flex: 10; gap: 1rem; min-height: 0; }
+.editor-container, .output-container { display: flex; flex-direction: column;height:36vh;  background-color: var(--panel-bg); border-radius: 4px; box-shadow: 0 0 10px rgba(0,0,0,0.5); overflow-y: auto; transition: background-color 0.3s; border: 1px solid var(--panel-header-border); }
+.panel-header { padding: 0.75rem 1rem; background-color: var(--panel-header-bg); border-bottom: 1px solid var(--panel-header-border); font-weight: 600; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-color); }
+#example-selector { padding: 0.25rem 0.5rem; border-radius: 0; border: 1px solid var(--text-color); font-size: 0.85rem; background-color: var(--bg-color); color: var(--text-color); font-family: var(--font-mono); cursor: pointer;}
+.editor-wrapper { display: flex; flex: 1; position: relative; overflow: hidden; }
+#line-numbers { width: 40px; padding: 1rem 0.5rem; text-align: right; background-color: var(--line-num-bg); color: var(--line-num-text); border-right: 1px solid var(--line-num-border); font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.5; user-select: none; overflow: hidden; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+
+/* Code Editor Area with Highlighting */
+.code-area { position: relative; flex: 1;  overflow: hidden; }
+
+textarea, pre {
+    margin: 0;
+    padding: 1rem;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    vertical-align: top;
+}
+
+/* Ensure code inside pre inherits perfectly */
+pre code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    padding: 0;
+    margin: 0;
+    white-space: pre;
+}
+
+/* The highlighting pre element is behind */
+#highlighting {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through */
+    z-index: 1;
+    background-color: var(--panel-bg);
+    color: var(--editor-text);
+    overflow: auto; /* Match textarea scrolling */
+    box-sizing: border-box; /* Important for padding match */
+    white-space: pre; /* Should match textarea */
+}
+
+/* The textarea is transparent and on top */
+#code-editor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    background-color: transparent;
+    color: transparent; /* Text is hidden, only caret visible */
+    caret-color: var(--text-color); /* Caret color matches text */
+    overflow: auto;
+    box-sizing: border-box;
+    white-space: pre;
+    resize: none;
+    outline: none;
+}
+
+#code-editor::selection {
+    background-color: var(--selection-bg);
+    color: transparent;
+}
+
+/* Terminal Styles */
+#terminal-window {
+    flex: 1;
+    background-color: var(--output-bg);
+    color: var(--output-text);
+    padding: 1rem;
+    font-family: var(--term-font);
+    font-size: 0.9rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#terminal-output { flex: 1; white-space: pre-wrap; word-wrap: break-word; }
+#terminal-input-line { display: flex; align-items: center; margin-top: 5px; border-top: 1px dashed var(--line-num-border); padding-top: 5px; }
+#terminal-prompt { color: var(--term-success); margin-right: 8px; font-weight: bold; }
+#terminal-input { flex: 1; background: transparent; border: none; color: var(--term-input); font-family: var(--term-font); font-size: 1rem; outline: none; caret-color: var(--term-input); }
+
+.term-info { color: var(--term-info); font-style: italic; opacity: 0.8; margin-bottom: 5px; }
+.term-error { color: var(--term-error); font-weight: bold; margin-top: 5px; }
+.term-success { color: var(--term-success); margin-top: 5px; }
+.term-input-echo { color: var(--term-input); opacity: 0.7; }
+.term-output { color: var(--output-text); }
+
+
+button { background-color: var(--button-bg); color: white; border: none; padding: 0.75rem 1.5rem; cursor: pointer; font-size: 1rem; font-weight: bold; margin: 1rem; align-self: center; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; border-radius: 0; clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%); }
+button:hover { background-color: var(--button-hover); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+/* Syntax Highlighting Tokens */
+.token-keyword { color: var(--token-keyword); font-weight: bold; }
+.token-builtin { color: var(--token-builtin); }
+.token-string { color: var(--token-string); }
+.token-number { color: var(--token-number); }
+.token-comment { color: var(--token-comment); font-style: italic; }
+.token-operator { color: var(--token-operator); }
+.token-type { color: var(--token-type); }
+
+/* Theme Toggle Button */
+#theme-toggle {
+    background: transparent;
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    margin: 0;
+    position: static; /* Removed absolute positioning */
+    transform: none;
+    opacity: 0.8;
+    clip-path: none;
+    border-radius: 4px;
+}
+#theme-toggle:hover { background: rgba(255,255,255,0.1); opacity: 1; color: var(--button-bg); border-color: var(--button-bg); }
+
+footer { text-align: center; padding: 1rem; color: var(--line-num-text); font-size: 0.8rem; }
+@media (max-width: 800px) {
+    .container { flex-direction: column; }
+}
+
+@media (max-width: 500px) {
+    h1 { font-size: 1.1rem; }
+    header { padding: 0.75rem; }
+}
+
+/* Error line highlighting */
+.error-line {
+    background-color: rgba(255, 0, 85, 0.2);
+    border-right: 3px solid var(--term-error) !important;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--scroll-track); }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }

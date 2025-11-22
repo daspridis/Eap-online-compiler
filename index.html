@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ψευδογλώσσα Interpreter - Landing</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Landing Page Specific Overrides */
+        body {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-color: var(--bg-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .hero {
+            max-width: 800px;
+            padding: 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--button-bg); /* Accent color */
+        }
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        .actions {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+        .btn-primary {
+            background-color: var(--button-bg);
+            color: white;
+            clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
+        }
+        .btn-primary:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            border-color: var(--text-color);
+            color: var(--text-color);
+            clip-path: polygon(0 0, 90% 0, 100% 20%, 100% 100%, 10% 100%, 0 80%);
+        }
+        .btn-secondary:hover {
+            border-color: var(--button-bg);
+            color: var(--button-bg);
+            transform: translateY(-3px);
+        }
+        .features {
+            margin-top: 4rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: left;
+        }
+        .feature-card {
+            background: var(--panel-bg);
+            padding: 1.5rem;
+            border: 1px solid var(--panel-header-border);
+            border-radius: 4px;
+        }
+        .feature-card h3 {
+            color: var(--term-info);
+            margin-top: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #theme-toggle-landing {
+            background: transparent;
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: var(--font-ui);
+            clip-path: none;
+        }
+        #theme-toggle-landing:hover {
+            color: var(--button-bg);
+            border-color: var(--button-bg);
+        }
+
+        /* Header for Landing Page */
+        .landing-header {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="landing-header">
+        <button id="theme-toggle-landing">🌙 Dark Mode</button>
+    </div>
+
+    <div class="hero">
+        <h1>Ψευδογλώσσα Interpreter</h1>
+        <p>
+            Ένα μοντέρνο, web-based περιβάλλον για την εκτέλεση και αποσφαλμάτωση κώδικα Ψευδογλώσσας (ΕΑΠ).
+            Minimal σχεδιασμός, Dark Mode και άμεση εκτέλεση στον browser.
+        </p>
+
+        <div class="actions">
+            <a href="editor.html" class="btn-large btn-primary">Άνοιγμα Compiler</a>
+            <a href="https://github.com/christosk8926/Eap-online-compiler.git" target="_blank" class="btn-large btn-secondary">GitHub Repo</a>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>⚡ Άμεση Εκτέλεση</h3>
+                <p>Τρέξτε τον αλγόριθμό σας απευθείας στον browser χωρίς εγκατάσταση.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🎨 Modern UI</h3>
+                <p>Επιλέξτε ανάμεσα σε Terminal Light και Cyberpunk Dark theme.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🐞 Debugging</h3>
+                <p>Επισήμανση σφαλμάτων και υποστήριξη βήμα-προς-βήμα (σύντομα).</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple Theme Logic for Landing Page
+        const themeToggle = document.getElementById('theme-toggle-landing');
+        let isDarkMode = localStorage.getItem('theme') === 'dark';
+
+        const applyTheme = () => {
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        };
+
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            applyTheme();
+        });
+
+        // Apply initial theme
+        applyTheme();
+    </script>
+
+</body>
+</html>
