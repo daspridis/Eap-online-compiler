@@ -327,11 +327,11 @@ document.addEventListener('DOMContentLoaded', () => {
         line.textContent = text;
         line.className = `term-${type}`;
         terminalOutput.appendChild(line);
-        terminalOutput.scrollTop = terminalOutput.scrollHeight;
 		if (terminalWindow) {
             terminalWindow.scrollTop = terminalWindow.scrollHeight;
         }
     };
+	
 
     const clearTerminal = () => {
         terminalOutput.innerHTML = '';
