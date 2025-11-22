@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const terminalInputLine = document.getElementById('terminal-input-line');
     const terminalInput = document.getElementById('terminal-input');
     const terminalPrompt = document.getElementById('terminal-prompt');
+	const terminalWindow = document.getElementById('terminal-window');
 
     // -----------------------------------
     // SYNTAX HIGHLIGHTING
@@ -327,6 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
         line.className = `term-${type}`;
         terminalOutput.appendChild(line);
         terminalOutput.scrollTop = terminalOutput.scrollHeight;
+		if (terminalWindow) {
+            terminalWindow.scrollTop = terminalWindow.scrollHeight;
+        }
     };
 
     const clearTerminal = () => {

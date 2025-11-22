@@ -96,15 +96,15 @@ header {
 }
 h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
 main { flex: 1; display: flex; flex-direction: column; padding: 1rem; gap: 1rem; }
-.container { display: flex; flex: 1; gap: 1rem; min-height: 0; }
-.editor-container, .output-container { flex: 1; display: flex; flex-direction: column; background-color: var(--panel-bg); border-radius: 4px; box-shadow: 0 0 10px rgba(0,0,0,0.5); overflow: hidden; transition: background-color 0.3s; border: 1px solid var(--panel-header-border); }
+.container { flex: 10; gap: 1rem; min-height: 0; }
+.editor-container, .output-container { display: flex; flex-direction: column;height:36vh;  background-color: var(--panel-bg); border-radius: 4px; box-shadow: 0 0 10px rgba(0,0,0,0.5); overflow-y: auto; transition: background-color 0.3s; border: 1px solid var(--panel-header-border); }
 .panel-header { padding: 0.75rem 1rem; background-color: var(--panel-header-bg); border-bottom: 1px solid var(--panel-header-border); font-weight: 600; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-color); }
 #example-selector { padding: 0.25rem 0.5rem; border-radius: 0; border: 1px solid var(--text-color); font-size: 0.85rem; background-color: var(--bg-color); color: var(--text-color); font-family: var(--font-mono); cursor: pointer;}
 .editor-wrapper { display: flex; flex: 1; position: relative; overflow: hidden; }
 #line-numbers { width: 40px; padding: 1rem 0.5rem; text-align: right; background-color: var(--line-num-bg); color: var(--line-num-text); border-right: 1px solid var(--line-num-border); font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.5; user-select: none; overflow: hidden; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
 
 /* Code Editor Area with Highlighting */
-.code-area { position: relative; flex: 1; display: flex; overflow: hidden; }
+.code-area { position: relative; flex: 1;  overflow: hidden; }
 
 textarea, pre {
     margin: 0;
