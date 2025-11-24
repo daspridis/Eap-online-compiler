@@ -4,15 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EAP Pseudocode Interpreter</title>
-	<link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
+    <script>
+        // Inline script to prevent FOUC (Flash of Unstyled Content) / wrong theme
+        (function() {
+            let savedTheme = 'light';
+            try {
+                const params = new URLSearchParams(window.location.search);
+                savedTheme = params.get('theme') || localStorage.getItem('theme') || 'light';
+            } catch (e) {
+                console.warn('Theme access error:', e);
+            }
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+
+        // Handle BFCache
+        window.addEventListener('pageshow', (event) => {
+             // Always update from storage to sync state (even if not strictly persisted)
+             try {
+                 const theme = localStorage.getItem('theme') || 'light';
+                 document.documentElement.setAttribute('data-theme', theme);
+             } catch (e) {
+                 console.warn('Theme access error:', e);
+             }
+        });
+    </script>
 </head>
 <body>
     <header>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <a href="index.html" style="color: inherit; text-decoration: none; font-size: 1.2rem; border: 1px solid currentColor; padding: 0.2rem 0.6rem; border-radius: 4px;">&larr; Home</a>
-            <h1>EAP Online Interpreter</h1>
-        </div>
+        <a href="index.html" class="home-link">&larr; Home</a>
+        <h1>EAP Online Interpreter</h1>
         <button id="theme-toggle">🌙 Dark Mode</button>
     </header>
     <main>
@@ -36,6 +58,17 @@
                     </div>
                 </div>
             </div>
+
+            <div class="controls">
+                <button id="run-button">▶ ΕΚΤΕΛΕΣΗ</button>
+                <div class="secondary-controls">
+                    <button id="save-button">💾 ΑΠΟΘΗΚΕΥΣΗ</button>
+                    <button id="clear-button">🗑️ ΚΑΘΑΡΙΣΜΟΣ</button>
+                </div>
+            </div>
+
+            <div class="resizer" id="drag-handle"></div>
+
             <div class="output-container">
                 <div class="panel-header">Αποτέλεσμα / Terminal</div>
                 <div id="terminal-window">
@@ -47,10 +80,9 @@
                 </div>
             </div>
         </div>
-        <button id="run-button">Εκτέλεση</button>
     </main>
     <footer><p>Ένας custom-made compiler για τον αγαπητό φοιτητή του ΕΑΠ</p></footer>
-    <script src="core.js"></script>
-    <script src="app.js"></script>
+    <script src="core.v5.js"></script>
+    <script src="app.v5.js"></script>
 </body>
 </html>

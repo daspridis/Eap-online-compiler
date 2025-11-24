@@ -4,11 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ψευδογλώσσα Interpreter - Landing</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
+    <script>
+        // Inline script to prevent FOUC
+        (function() {
+            let savedTheme = 'light';
+            try {
+                const params = new URLSearchParams(window.location.search);
+                savedTheme = params.get('theme') || localStorage.getItem('theme') || 'light';
+            } catch (e) {
+                console.warn('Theme access error:', e);
+            }
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+
+        // Handle BFCache (Back/Forward Cache)
+        window.addEventListener('pageshow', (event) => {
+            // Always re-check storage on page show, whether persisted or not, to ensure consistency
+            try {
+                const theme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                console.warn('Theme access error:', e);
+            }
+        });
+    </script>
     <style>
         /* Landing Page Specific Overrides */
         body {
+            /* Enable scrolling for landing page, overriding app-specific hidden overflow */
+            height: auto;
+            overflow-y: auto;
+
             justify-content: center;
             align-items: center;
             text-align: center;
@@ -155,12 +183,32 @@
     <script>
         // Simple Theme Logic for Landing Page
         const themeToggle = document.getElementById('theme-toggle-landing');
-        let isDarkMode = localStorage.getItem('theme') === 'dark';
+
+        // Initialize from current state
+        let isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
 
         const applyTheme = () => {
-            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            const theme = isDarkMode ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.body.setAttribute('data-theme', theme);
             themeToggle.textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+
+            try {
+                localStorage.setItem('theme', theme);
+            } catch (e) {
+                console.warn('LocalStorage write failed:', e);
+            }
+
+            // Update Link to pass theme state via URL
+            const link = document.querySelector('.btn-primary');
+            if (link) {
+                link.href = `editor.html?theme=${theme}`;
+            }
+
+            // Update current URL for history consistency
+            const url = new URL(window.location);
+            url.searchParams.set('theme', theme);
+            window.history.replaceState({}, '', url);
         };
 
         themeToggle.addEventListener('click', () => {
@@ -168,7 +216,8 @@
             applyTheme();
         });
 
-        // Apply initial theme
+        // Update button text and link initially
+        themeToggle.textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
         applyTheme();
     </script>
 
